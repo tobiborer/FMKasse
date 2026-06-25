@@ -16,7 +16,26 @@ struct EditBookingView: View {
     @State private var isDeleting = false
     @State private var editingDetail: BookDetail? = nil
     @State private var detailToDelete: BookDetail? = nil
-    
+
+    // Editierbare Referenzen der Buchung
+    @State private var bookreference1: String = ""
+    @State private var bookreference2: String = ""
+    @State private var originalRef1: String = ""
+    @State private var originalRef2: String = ""
+    @State private var isSavingReferences = false
+
+    init(entry: BookJournalAgg) {
+        self.entry = entry
+        _bookreference1 = State(initialValue: entry.bookreference1 ?? "")
+        _bookreference2 = State(initialValue: entry.bookreference2 ?? "")
+        _originalRef1 = State(initialValue: entry.bookreference1 ?? "")
+        _originalRef2 = State(initialValue: entry.bookreference2 ?? "")
+    }
+
+    private var referencesChanged: Bool {
+        bookreference1 != originalRef1 || bookreference2 != originalRef2
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Titel-Header
@@ -39,10 +58,38 @@ struct EditBookingView: View {
                         infoRow("Vertrag:", entry.contractname ?? "-")
                         infoRow("Kasse:", machineName ?? (entry.fk_machine != nil ? "#\(entry.fk_machine!)" : "-"))
 
-                        // Beide Referenzen werden immer angezeigt – Kostenstelle (aus dem
-                        // Vertrag vorbelegt) und die optionale Kundenreferenz.
-                        referenceRow("Kostenstelle", referenceDisplay(entry.bookreference1))
-                        referenceRow("Kundenreferenz (Bestellnummer)", referenceDisplay(entry.bookreference2))
+                        // Referenzen editierbar – Kostenstelle (aus dem Vertrag vorbelegt)
+                        // und die optionale Kundenreferenz.
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Kostenstelle")
+                                .font(Equans.Fonts.callout)
+                                .foregroundColor(Equans.Colors.textSecondary)
+                            TextField("Kostenstelle", text: $bookreference1)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Kundenreferenz (Bestellnummer)")
+                                .font(Equans.Fonts.callout)
+                                .foregroundColor(Equans.Colors.textSecondary)
+                            TextField("Kundenreferenz (Bestellnummer)", text: $bookreference2)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        if referencesChanged {
+                            Button(action: { saveReferences() }) {
+                                HStack(spacing: 6) {
+                                    if isSavingReferences {
+                                        ProgressView()
+                                    } else {
+                                        Image(systemName: "checkmark.circle.fill")
+                                    }
+                                    Text(isSavingReferences ? "Speichern…" : "Referenzen speichern")
+                                        .font(Equans.Fonts.roboto(14, weight: .bold))
+                                }
+                                .foregroundColor(Equans.Colors.darkGreen)
+                            }
+                            .disabled(isSavingReferences)
+                            .padding(.top, 4)
+                        }
 
                         infoRow("Positionen:", "\(entry.position_count)")
                         infoRow("Gesamtwert:", String(format: "%.2f CHF", entry.total_value), bold: true)
@@ -221,25 +268,29 @@ struct EditBookingView: View {
         }
     }
     
-    /// Liefert den Referenzwert oder "-" wenn keiner gesetzt ist.
-    private func referenceDisplay(_ value: String?) -> String {
-        guard let value = value, !value.isEmpty else { return "-" }
-        return value
-    }
-
-    /// Zeigt ein Referenzfeld mit Label oben und Wert darunter –
-    /// passend auch für lange Bezeichnungen wie "Kundenreferenz (Bestellnummer)".
-    @ViewBuilder
-    private func referenceRow(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-                .font(Equans.Fonts.callout)
-                .foregroundColor(Equans.Colors.textSecondary)
-            Text(value)
-                .font(Equans.Fonts.roboto(15, weight: .regular))
-                .foregroundColor(Equans.Colors.textPrimary)
+    private func saveReferences() {
+        guard !isSavingReferences else { return }
+        isSavingReferences = true
+        let ref1 = bookreference1.trimmingCharacters(in: .whitespaces)
+        let ref2 = bookreference2.trimmingCharacters(in: .whitespaces)
+        SupabaseManager.shared.updateBookJournalReferences(
+            journalId: entry.journal_id,
+            bookreference1: ref1.isEmpty ? nil : ref1,
+            bookreference2: ref2.isEmpty ? nil : ref2
+        ) { result in
+            DispatchQueue.main.async {
+                isSavingReferences = false
+                switch result {
+                case .success:
+                    // Ausgangswerte angleichen, damit der Speichern-Button wieder verschwindet.
+                    originalRef1 = bookreference1
+                    originalRef2 = bookreference2
+                case .failure(let err):
+                    deleteErrorMessage = "Referenzen konnten nicht gespeichert werden: \(err.localizedDescription)"
+                    showDeleteError = true
+                }
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder
