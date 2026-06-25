@@ -7,13 +7,7 @@ struct SettingsMenuView: View {
     @State private var error: String?
     @State private var selectedId: Int64?
     @Environment(\.dismiss) private var dismiss
-    
-    // Code-Gate
-    @State private var isUnlocked = false
-    @State private var enteredCode = ""
-    @State private var showCodeError = false
-    private let requiredCode = "1234"
-    
+
     // Vertragszuordnung
     @State private var contracts: [Contract] = []
     @State private var articleGroups: [ArticleGroup] = []
@@ -26,22 +20,19 @@ struct SettingsMenuView: View {
     
     var body: some View {
         NavigationView {
-            Group {
-                if isUnlocked {
-                    settingsForm
-                } else {
-                    codeGate
-                }
-            }
+            settingsForm
             .navigationTitle("Einstellungen")
+            .onAppear {
+                loadMachines()
+                selectedId = deviceRepo.selectedMachineId
+                loadContractData()
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 16) {
-                        if isUnlocked {
-                            Button(action: { showAddMachine = true }) {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(Equans.Colors.darkGreen)
-                            }
+                        Button(action: { showAddMachine = true }) {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(Equans.Colors.darkGreen)
                         }
                         Button(action: { dismiss() }) {
                             Image(systemName: "xmark.circle.fill")
@@ -52,60 +43,7 @@ struct SettingsMenuView: View {
             }
         }
     }
-    
-    // MARK: - Code Gate
-    private var codeGate: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            ZStack {
-                Circle()
-                    .fill(Equans.Colors.turquoise.opacity(0.12))
-                    .frame(width: 96, height: 96)
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(Equans.Colors.darkBlue)
-            }
-            Text("Geschützter Bereich")
-                .font(Equans.Fonts.title)
-                .foregroundColor(Equans.Colors.textPrimary)
-            Text("Bitte Code eingeben, um die Einstellungen zu öffnen.")
-                .font(Equans.Fonts.body)
-                .foregroundColor(Equans.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            SecureField("Code", text: $enteredCode)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .padding(14)
-                .background(Equans.Colors.surface)
-                .cornerRadius(12)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Equans.Colors.border, lineWidth: 1))
-                .frame(maxWidth: 220)
-            if showCodeError {
-                Text("Falscher Code.")
-                    .foregroundColor(Equans.Colors.danger)
-                    .font(Equans.Fonts.caption)
-            }
-            Button("Entsperren") {
-                if enteredCode == requiredCode {
-                    isUnlocked = true
-                    showCodeError = false
-                    loadMachines()
-                    selectedId = deviceRepo.selectedMachineId
-                    loadContractData()
-                } else {
-                    showCodeError = true
-                }
-            }
-            .buttonStyle(EquansPrimaryButtonStyle())
-            .frame(maxWidth: 220)
-            Spacer()
-        }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Equans.Colors.background.ignoresSafeArea())
-    }
-    
+
     // MARK: - Settings Form
     private var settingsForm: some View {
         Form {
