@@ -39,12 +39,10 @@ struct EditBookingView: View {
                         infoRow("Vertrag:", entry.contractname ?? "-")
                         infoRow("Kasse:", machineName ?? (entry.fk_machine != nil ? "#\(entry.fk_machine!)" : "-"))
 
-                        if let ref = entry.bookreference1, !ref.isEmpty {
-                            infoRow("Referenz 1:", ref)
-                        }
-                        if let ref = entry.bookreference2, !ref.isEmpty {
-                            infoRow("Referenz 2:", ref)
-                        }
+                        // Beide Referenzen werden immer angezeigt – Referenz 1 trägt die
+                        // Standardkostenstelle aus dem Vertrag, Referenz 2 ist optional.
+                        infoRow("Referenz 1:", referenceDisplay(entry.bookreference1))
+                        infoRow("Referenz 2:", referenceDisplay(entry.bookreference2))
 
                         infoRow("Positionen:", "\(entry.position_count)")
                         infoRow("Gesamtwert:", String(format: "%.2f CHF", entry.total_value), bold: true)
@@ -223,6 +221,12 @@ struct EditBookingView: View {
         }
     }
     
+    /// Liefert den Referenzwert oder "-" wenn keiner gesetzt ist.
+    private func referenceDisplay(_ value: String?) -> String {
+        guard let value = value, !value.isEmpty else { return "-" }
+        return value
+    }
+
     @ViewBuilder
     private func infoRow(_ label: String, _ value: String, bold: Bool = false) -> some View {
         HStack(alignment: .top) {

@@ -87,8 +87,10 @@ struct NewBookingContractSelectionView: View {
                                     // Draft-Objekt zentral als StateObject befüllen
                                     self.journalDraft.fk_contract = contract.id
                                     self.journalDraft.fk_machine = deviceRepo.selectedMachineId
-                                    self.journalDraft.bookreference1 = contract.contractreference_1
-                                    self.journalDraft.bookreference2 = contract.contractreference_2
+                                    // Referenz 1 wird mit der Standardkostenstelle des Vertrags vorbelegt (falls vorhanden).
+                                    self.journalDraft.bookreference1 = contract.contractstandardcostcenter
+                                    // Referenz 2 bleibt leer und wird allenfalls vom Anwender erfasst.
+                                    self.journalDraft.bookreference2 = nil
                                     self.journalDraft.fk_objectorigin = nil
                                     self.journalDraft.fk_objectdestination = nil
                                     self.journalDraft.fk_order = nil
