@@ -185,6 +185,8 @@ struct NewBookingJournalDraftDetail: View {
             AddBookDetailDraftView(
                 contract: draft.contract,
                 machineId: draft.fk_machine ?? 0,
+                bookreference1: draft.bookreference1,
+                bookreference2: draft.bookreference2,
                 draftDetails: $draftDetails,
                 onCancel: { self.showAddPositionSheet = false },
                 onTransactionComplete: {

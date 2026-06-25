@@ -569,6 +569,19 @@ class SupabaseManager {
         }
     }
     
+    /// Aktualisiert die Referenzen (Kostenstelle / Kundenreferenz) einer bestehenden Buchung.
+    func updateBookJournalReferences(journalId: Int64, bookreference1: String?, bookreference2: String?, completion: @escaping (Result<Void, Error>) -> Void) {
+        let payload = BookJournalReferenceUpdate(bookreference1: bookreference1, bookreference2: bookreference2)
+        Task {
+            do {
+                _ = try await client.from("bookjournal").update(payload).eq("id", value: String(journalId)).execute()
+                completion(.success(()))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
     // MARK: - Delete Methods
     func deleteBookJournal(id: Int64, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
@@ -1215,4 +1228,19 @@ struct ContractValidUpdate: Encodable {
 struct BookDetailUpdate: Encodable {
     let booknbrsarticle: Double?
     let bookdetaildescr: String?
+}
+
+/// Update-Payload für die Buchungs-Referenzen. Kodiert auch `null`, damit
+/// geleerte Felder die Referenz tatsächlich entfernen.
+struct BookJournalReferenceUpdate: Encodable {
+    let bookreference1: String?
+    let bookreference2: String?
+
+    enum CodingKeys: String, CodingKey { case bookreference1, bookreference2 }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(bookreference1, forKey: .bookreference1)
+        try container.encode(bookreference2, forKey: .bookreference2)
+    }
 }

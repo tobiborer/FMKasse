@@ -4,6 +4,9 @@ import SwiftUI
 struct AddBookDetailDraftView: View {
     let contract: Contract
     let machineId: Int64
+    /// Referenzen aus dem Buchungs-Draft, die mit dem neuen Buchungsjournal gespeichert werden.
+    var bookreference1: String? = nil
+    var bookreference2: String? = nil
     @Binding var draftDetails: [BookDetailDraft]
     var onCancel: () -> Void
     var onTransactionComplete: (() -> Void)? = nil
@@ -158,8 +161,8 @@ struct AddBookDetailDraftView: View {
         SupabaseManager.shared.insertBookJournal(
             fk_contract: contract.id,
             fk_machine: machineId,
-            bookreference1: nil,
-            bookreference2: nil
+            bookreference1: bookreference1,
+            bookreference2: bookreference2
         ) { result in
             DispatchQueue.main.async {
                 switch result {
