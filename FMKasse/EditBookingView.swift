@@ -74,22 +74,6 @@ struct EditBookingView: View {
                             TextField("Kundenreferenz (Bestellnummer)", text: $bookreference2)
                                 .textFieldStyle(.roundedBorder)
                         }
-                        if referencesChanged {
-                            Button(action: { saveReferences() }) {
-                                HStack(spacing: 6) {
-                                    if isSavingReferences {
-                                        ProgressView()
-                                    } else {
-                                        Image(systemName: "checkmark.circle.fill")
-                                    }
-                                    Text(isSavingReferences ? "Speichern…" : "Referenzen speichern")
-                                        .font(Equans.Fonts.roboto(14, weight: .bold))
-                                }
-                                .foregroundColor(Equans.Colors.darkGreen)
-                            }
-                            .disabled(isSavingReferences)
-                            .padding(.top, 4)
-                        }
 
                         infoRow("Positionen:", "\(entry.position_count)")
                         infoRow("Gesamtwert:", String(format: "%.2f CHF", entry.total_value), bold: true)
@@ -140,14 +124,15 @@ struct EditBookingView: View {
             // Buttons
             VStack(spacing: 12) {
                 HStack(spacing: 16) {
-                    Button(action: { dismiss() }) {
-                        Text("Schließen")
+                    Button(action: { closeWithSave() }) {
+                        Text(isSavingReferences ? "Speichern…" : "Schließen")
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Equans.Colors.textSecondary)
                             .foregroundColor(.white)
                             .cornerRadius(Equans.Layout.cornerRadius)
                     }
+                    .disabled(isSavingReferences)
 
                     Button(action: { checkAndDeleteBooking() }) {
                         Text("Löschen")
@@ -268,7 +253,17 @@ struct EditBookingView: View {
         }
     }
     
-    private func saveReferences() {
+    /// Schliesst die Buchung. Wurden Referenzen geändert, werden sie zuerst gespeichert
+    /// und erst nach Erfolg geschlossen; bei Fehler bleibt die Ansicht mit Hinweis offen.
+    private func closeWithSave() {
+        guard referencesChanged else {
+            dismiss()
+            return
+        }
+        saveReferences(thenDismiss: true)
+    }
+
+    private func saveReferences(thenDismiss: Bool = false) {
         guard !isSavingReferences else { return }
         isSavingReferences = true
         let ref1 = bookreference1.trimmingCharacters(in: .whitespaces)
@@ -282,9 +277,9 @@ struct EditBookingView: View {
                 isSavingReferences = false
                 switch result {
                 case .success:
-                    // Ausgangswerte angleichen, damit der Speichern-Button wieder verschwindet.
                     originalRef1 = bookreference1
                     originalRef2 = bookreference2
+                    if thenDismiss { dismiss() }
                 case .failure(let err):
                     deleteErrorMessage = "Referenzen konnten nicht gespeichert werden: \(err.localizedDescription)"
                     showDeleteError = true
