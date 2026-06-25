@@ -62,20 +62,18 @@ struct NewBookingJournalDraftDetail: View {
                             .font(Equans.Fonts.body)
                             .foregroundColor(Equans.Colors.textPrimary)
                     }
-                    HStack {
-                        Text("Referenz 1:")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Kostenstelle")
                             .font(Equans.Fonts.callout)
                             .foregroundColor(Equans.Colors.textSecondary)
-                            .frame(width: 110, alignment: .leading)
-                        TextField("Referenz 1", text: $draft.bookreference1.orEmpty)
+                        TextField("Kostenstelle", text: $draft.bookreference1.orEmpty)
                             .textFieldStyle(.roundedBorder)
                     }
-                    HStack {
-                        Text("Referenz 2:")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Kundenreferenz (Bestellnummer)")
                             .font(Equans.Fonts.callout)
                             .foregroundColor(Equans.Colors.textSecondary)
-                            .frame(width: 110, alignment: .leading)
-                        TextField("Referenz 2", text: $draft.bookreference2.orEmpty)
+                        TextField("Kundenreferenz (Bestellnummer)", text: $draft.bookreference2.orEmpty)
                             .textFieldStyle(.roundedBorder)
                     }
                 }
