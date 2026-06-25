@@ -48,6 +48,11 @@ struct Contract: Codable, Identifiable, Hashable {
     let contractsapobjectlink: String?
     let contractowner: String?
 
+    /// Ein Vertrag gilt als aktiv, solange er nicht ausdrücklich als ungültig
+    /// (`contractvalid == "false"`) markiert wurde. Als gelöscht markierte Verträge
+    /// werden in allen Sichten ausgeblendet.
+    var isActive: Bool { contractvalid != "false" }
+
     enum CodingKeys: String, CodingKey {
         case id, created_at, clientname, contractname, contractdate, contractvalid, contractlogo, contractreference_1, contractreference_2, contractreference_3, contractreference_4, contractclientno, contractshortname, contractclientdep, contractclientadress_1, contractclientadress_2, contractclientadress_zip, contractclientadress_city, contractclienttaxid, contractstandardcostcenter, needobjectdefinition, needplanonrderdefinition, contractplanonref, contractplanonreference_syscode, contractsapobjectlink, contractowner
     }
@@ -465,7 +470,22 @@ class SupabaseManager {
         }
     }
 
+    /// Liefert nur aktive Verträge – als gelöscht markierte (`contractvalid == "false"`)
+    /// werden ausgeblendet. Für alle Listen-/Auswahl-Sichten.
     func fetchContracts(completion: @escaping (Result<[Contract], Error>) -> Void) {
+        Task {
+            do {
+                let contracts: [Contract] = try await client.from("contract").select().execute().value
+                completion(.success(contracts.filter { $0.isActive }))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Liefert alle Verträge inkl. der als gelöscht markierten. Nur dort verwenden,
+    /// wo historische Buchungen ihren Vertrag per ID auflösen müssen (z.B. Faktura).
+    func fetchAllContracts(completion: @escaping (Result<[Contract], Error>) -> Void) {
         Task {
             do {
                 let contracts: [Contract] = try await client.from("contract").select().execute().value
@@ -753,6 +773,67 @@ class SupabaseManager {
             do {
                 _ = try await client.from("contract").delete().eq("id", value: String(id)).execute()
                 completion(.success(()))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Ergebnis einer Vertrags-Entfernung – je nachdem, ob effektiv gelöscht
+    /// oder (wegen vorhandener Buchungen) nur als gelöscht markiert wurde.
+    enum ContractRemovalOutcome {
+        case hardDeleted   // Vertrag inkl. Artikelstruktur effektiv gelöscht
+        case softDeleted   // Vertrag hatte Buchungen → nur als gelöscht markiert
+    }
+
+    /// Entfernt einen Vertrag.
+    /// - Ohne Buchungen: effektives Löschen inkl. Artikelstruktur (Artikelgruppen,
+    ///   Artikel, machineconfig-Zuordnungen).
+    /// - Mit Buchungen: der Vertrag wird nur als gelöscht markiert (`contractvalid = false`),
+    ///   um die Buchungshistorie zu erhalten. Er wird danach in allen Sichten ausgeblendet.
+    func removeContract(id: Int64, completion: @escaping (Result<ContractRemovalOutcome, Error>) -> Void) {
+        struct IdRow: Decodable { let id: Int64 }
+        Task {
+            do {
+                // 1. Prüfen, ob Buchungen auf den Vertrag verweisen.
+                let journals: [IdRow] = try await client
+                    .from("bookjournal")
+                    .select("id")
+                    .eq("fk_contract", value: String(id))
+                    .limit(1)
+                    .execute()
+                    .value
+
+                if !journals.isEmpty {
+                    // Soft-Delete: nur als ungültig markieren, Historie bleibt erhalten.
+                    _ = try await client
+                        .from("contract")
+                        .update(ContractValidUpdate(contractvalid: false))
+                        .eq("id", value: String(id))
+                        .execute()
+                    completion(.success(.softDeleted))
+                    return
+                }
+
+                // 2. Hard-Delete: Artikelgruppen des Vertrags ermitteln.
+                let groups: [IdRow] = try await client
+                    .from("articlegroup")
+                    .select("id")
+                    .eq("fk_contract", value: String(id))
+                    .execute()
+                    .value
+                let groupIds = groups.map { String($0.id) }
+
+                // 3. Abhängige Datensätze der Artikelgruppen entfernen.
+                if !groupIds.isEmpty {
+                    _ = try await client.from("machineconfig").delete().in("fk_articlegroup", values: groupIds).execute()
+                    _ = try await client.from("article").delete().in("fk_articlegroup", values: groupIds).execute()
+                    _ = try await client.from("articlegroup").delete().eq("fk_contract", value: String(id)).execute()
+                }
+
+                // 4. Vertrag löschen.
+                _ = try await client.from("contract").delete().eq("id", value: String(id)).execute()
+                completion(.success(.hardDeleted))
             } catch {
                 completion(.failure(error))
             }
@@ -1124,6 +1205,11 @@ struct ContractUpdate: Encodable {
     var contractclientadress_zip: String?
     var contractclientadress_city: String?
     var contractstandardcostcenter: String?
+}
+
+/// Markiert einen Vertrag als (un)gültig – für den Soft-Delete.
+struct ContractValidUpdate: Encodable {
+    let contractvalid: Bool
 }
 
 struct BookDetailUpdate: Encodable {

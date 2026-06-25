@@ -9,6 +9,8 @@ struct ContractArticleManagementView: View {
     @State private var showCopyContract = false
     @State private var showAddMenu = false
     @State private var contractToDelete: Contract? = nil
+    @State private var deleteErrorMessage: String? = nil
+    @State private var infoMessage: String? = nil
     @State private var isSaving = false
     @State private var isCopying = false
     @State private var searchText = ""
@@ -179,7 +181,23 @@ struct ContractArticleManagementView: View {
                     contractToDelete = nil
                 }
             } message: {
-                Text("Möchten Sie diesen Vertrag wirklich löschen? Zugehörige Artikelgruppen und Artikel bleiben ggf. bestehen.")
+                Text("Verträge ohne Buchungen werden vollständig gelöscht (inkl. Artikelgruppen und Artikel). Verträge mit bestehenden Buchungen werden als gelöscht markiert und ausgeblendet – die Buchungshistorie bleibt erhalten.")
+            }
+            .alert("Löschen nicht möglich", isPresented: Binding(
+                get: { deleteErrorMessage != nil },
+                set: { if !$0 { deleteErrorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { deleteErrorMessage = nil }
+            } message: {
+                Text(deleteErrorMessage ?? "")
+            }
+            .alert("Hinweis", isPresented: Binding(
+                get: { infoMessage != nil },
+                set: { if !$0 { infoMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { infoMessage = nil }
+            } message: {
+                Text(infoMessage ?? "")
             }
         }
     }
@@ -201,13 +219,17 @@ struct ContractArticleManagementView: View {
     }
     
     private func deleteContract(_ contract: Contract) {
-        SupabaseManager.shared.deleteContract(id: contract.id) { result in
+        SupabaseManager.shared.removeContract(id: contract.id) { result in
             DispatchQueue.main.async {
                 switch result {
-                case .success:
+                case .success(let outcome):
                     loadContracts()
+                    if outcome == .softDeleted {
+                        self.infoMessage = "Der Vertrag hat bestehende Buchungen und wurde als gelöscht markiert und ausgeblendet. Die Buchungshistorie bleibt erhalten."
+                    }
                 case .failure(let err):
-                    self.error = err.localizedDescription
+                    // Fehler als Hinweis anzeigen, Liste bleibt erhalten.
+                    self.deleteErrorMessage = err.localizedDescription
                 }
             }
         }
