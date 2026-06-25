@@ -39,10 +39,10 @@ struct EditBookingView: View {
                         infoRow("Vertrag:", entry.contractname ?? "-")
                         infoRow("Kasse:", machineName ?? (entry.fk_machine != nil ? "#\(entry.fk_machine!)" : "-"))
 
-                        // Beide Referenzen werden immer angezeigt – Referenz 1 trägt die
-                        // Standardkostenstelle aus dem Vertrag, Referenz 2 ist optional.
-                        infoRow("Referenz 1:", referenceDisplay(entry.bookreference1))
-                        infoRow("Referenz 2:", referenceDisplay(entry.bookreference2))
+                        // Beide Referenzen werden immer angezeigt – Kostenstelle (aus dem
+                        // Vertrag vorbelegt) und die optionale Kundenreferenz.
+                        referenceRow("Kostenstelle", referenceDisplay(entry.bookreference1))
+                        referenceRow("Kundenreferenz (Bestellnummer)", referenceDisplay(entry.bookreference2))
 
                         infoRow("Positionen:", "\(entry.position_count)")
                         infoRow("Gesamtwert:", String(format: "%.2f CHF", entry.total_value), bold: true)
@@ -225,6 +225,21 @@ struct EditBookingView: View {
     private func referenceDisplay(_ value: String?) -> String {
         guard let value = value, !value.isEmpty else { return "-" }
         return value
+    }
+
+    /// Zeigt ein Referenzfeld mit Label oben und Wert darunter –
+    /// passend auch für lange Bezeichnungen wie "Kundenreferenz (Bestellnummer)".
+    @ViewBuilder
+    private func referenceRow(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(Equans.Fonts.callout)
+                .foregroundColor(Equans.Colors.textSecondary)
+            Text(value)
+                .font(Equans.Fonts.roboto(15, weight: .regular))
+                .foregroundColor(Equans.Colors.textPrimary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder

@@ -24,8 +24,8 @@ struct NewBookingJournalDetail: View {
                 Text("Kunde: \(contract.clientname ?? "-")")
                 Text("Vertrag: \(contract.contractname ?? "-")")
                 Text("Kasse: \(machineName ?? (journal.fk_machine != nil ? "#\(journal.fk_machine!)" : "-"))")
-                if let ref1 = journal.bookreference1 { Text("Referenz 1: \(ref1)") }
-                if let ref2 = journal.bookreference2 { Text("Referenz 2: \(ref2)") }
+                if let ref1 = journal.bookreference1 { Text("Kostenstelle: \(ref1)") }
+                if let ref2 = journal.bookreference2 { Text("Kundenreferenz (Bestellnummer): \(ref2)") }
             }
             .padding()
             .background(Color(.systemGray6))
