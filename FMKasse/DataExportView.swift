@@ -418,7 +418,7 @@ enum ExportGenerator {
     // MARK: CSV – Buchung
 
     private static func csvBuchung(data: [BookJournalAgg]) throws -> Data {
-        let headers = ["ID", "Datum", "Kunde", "Vertrag", "Referenz 1", "Referenz 2", "Positionen", "Betrag CHF"]
+        let headers = ["ID", "Datum", "Kunde", "Vertrag", "Kostenstelle", "Kundenreferenz (Bestellnummer)", "Positionen", "Betrag CHF"]
         var rows: [[String]] = [headers]
         for a in data {
             rows.append([
@@ -444,7 +444,7 @@ enum ExportGenerator {
     // MARK: CSV – Position
 
     private static func csvPosition(data: [PositionRow]) throws -> Data {
-        let headers = ["Buchungs-ID", "Datum", "Kunde", "Vertrag", "Referenz 1", "Referenz 2",
+        let headers = ["Buchungs-ID", "Datum", "Kunde", "Vertrag", "Kostenstelle", "Kundenreferenz (Bestellnummer)",
                        "Artikel", "Beschreibung", "Einheit", "Anzahl", "Einzelpreis CHF", "Betrag CHF"]
         var rows: [[String]] = [headers]
         for p in data {
@@ -504,7 +504,7 @@ enum ExportGenerator {
               </Row>
               <Row/>
               <Row ss:StyleID="header">
-                \(strCell("ID"))\(strCell("Datum"))\(strCell("Kunde"))\(strCell("Vertrag"))\(strCell("Gerät"))\(strCell("Referenz 1"))\(strCell("Referenz 2"))\(strCell("Positionen"))\(strCell("Betrag CHF"))
+                \(strCell("ID"))\(strCell("Datum"))\(strCell("Kunde"))\(strCell("Vertrag"))\(strCell("Gerät"))\(strCell("Kostenstelle"))\(strCell("Kundenreferenz (Bestellnummer)"))\(strCell("Positionen"))\(strCell("Betrag CHF"))
               </Row>
 
         """
