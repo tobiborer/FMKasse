@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		13DED3942E1E55C90072C214 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 13DED3932E1E55C90072C214 /* Auth */; };
+		13DED3962E1E55C90072C214 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 13DED3952E1E55C90072C214 /* Functions */; };
+		13DED3982E1E55C90072C214 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 13DED3972E1E55C90072C214 /* PostgREST */; };
+		13DED39A2E1E55C90072C214 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 13DED3992E1E55C90072C214 /* Realtime */; };
+		13DED39C2E1E55C90072C214 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 13DED39B2E1E55C90072C214 /* Storage */; };
+		13DED3A12E1E572F0072C214 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 13DED3A02E1E572F0072C214 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		13DED3762E1E54A80072C214 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +38,22 @@
 		13DED37F2E1E54A80072C214 /* FMKasseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FMKasseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		13FD1CB72FE44774003EE070 /* Exceptions for "FMKasse" folder in "FMKasse" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 13DED3672E1E54A60072C214 /* FMKasse */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		13DED36A2E1E54A60072C214 /* FMKasse */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				13FD1CB72FE44774003EE070 /* Exceptions for "FMKasse" folder in "FMKasse" target */,
+			);
 			path = FMKasse;
 			sourceTree = "<group>";
 		};
@@ -52,6 +74,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13DED3982E1E55C90072C214 /* PostgREST in Frameworks */,
+				13DED3962E1E55C90072C214 /* Functions in Frameworks */,
+				13DED3A12E1E572F0072C214 /* Supabase in Frameworks */,
+				13DED3942E1E55C90072C214 /* Auth in Frameworks */,
+				13DED39C2E1E55C90072C214 /* Storage in Frameworks */,
+				13DED39A2E1E55C90072C214 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +106,7 @@
 				13DED36A2E1E54A60072C214 /* FMKasse */,
 				13DED3782E1E54A80072C214 /* FMKasseTests */,
 				13DED3822E1E54A80072C214 /* FMKasseUITests */,
+				13DED39F2E1E572F0072C214 /* Frameworks */,
 				13DED3692E1E54A60072C214 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +119,13 @@
 				13DED37F2E1E54A80072C214 /* FMKasseUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		13DED39F2E1E572F0072C214 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +148,12 @@
 			);
 			name = FMKasse;
 			packageProductDependencies = (
+				13DED3932E1E55C90072C214 /* Auth */,
+				13DED3952E1E55C90072C214 /* Functions */,
+				13DED3972E1E55C90072C214 /* PostgREST */,
+				13DED3992E1E55C90072C214 /* Realtime */,
+				13DED39B2E1E55C90072C214 /* Storage */,
+				13DED3A02E1E572F0072C214 /* Supabase */,
 			);
 			productName = FMKasse;
 			productReference = 13DED3682E1E54A60072C214 /* FMKasse.app */;
@@ -171,7 +213,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					13DED3672E1E54A60072C214 = {
 						CreatedOnToolsVersion = 16.4;
@@ -195,6 +237,9 @@
 			);
 			mainGroup = 13DED35F2E1E54A60072C214;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 13DED3692E1E54A60072C214 /* Products */;
 			projectDirPath = "";
@@ -328,6 +373,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -385,6 +431,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -400,6 +447,7 @@
 				DEVELOPMENT_TEAM = K26Y747TFV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FMKasse/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +476,7 @@
 				DEVELOPMENT_TEAM = K26Y747TFV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FMKasse/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -558,6 +607,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase-community/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		13DED3932E1E55C90072C214 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		13DED3952E1E55C90072C214 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		13DED3972E1E55C90072C214 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		13DED3992E1E55C90072C214 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		13DED39B2E1E55C90072C214 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		13DED3A02E1E572F0072C214 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13DED3922E1E55C90072C214 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 13DED3602E1E54A60072C214 /* Project object */;
 }

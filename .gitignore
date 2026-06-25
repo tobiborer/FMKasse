@@ -1,0 +1,38 @@
+# ---- macOS ----
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# ---- Xcode: Benutzer- & Build-Daten ----
+## Benutzerspezifische Xcode-Daten (gehören nicht ins Repo)
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+## Build-Artefakte
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Swift Package Manager
+.build/
+.swiftpm/
+
+## CocoaPods / Carthage (falls je genutzt)
+Pods/
+Carthage/Build/
+
+# ---- Secrets / lokale Konfiguration ----
+*.env
+.env.local
+Secrets.plist
+
+# ---- Supabase CLI ----
+supabase/.branches/
+supabase/.temp/
