@@ -758,6 +758,51 @@ class SupabaseManager {
             }
         }
     }
+
+    /// Löscht einen Vertrag samt zugehöriger Artikelstruktur (Artikelgruppen, Artikel,
+    /// machineconfig-Zuordnungen). Bricht mit einer klaren Meldung ab, wenn der Vertrag
+    /// bereits Buchungen hat – so wird keine Buchungshistorie zerstört.
+    func deleteContractCascade(id: Int64, completion: @escaping (Result<Void, Error>) -> Void) {
+        struct IdRow: Decodable { let id: Int64 }
+        Task {
+            do {
+                // 1. Schutz: keine Löschung, wenn Buchungen auf den Vertrag verweisen.
+                let journals: [IdRow] = try await client
+                    .from("bookjournal")
+                    .select("id")
+                    .eq("fk_contract", value: String(id))
+                    .limit(1)
+                    .execute()
+                    .value
+                if !journals.isEmpty {
+                    throw NSError(domain: "FMKasse", code: 409, userInfo: [NSLocalizedDescriptionKey:
+                        "Dieser Vertrag hat bereits Buchungen und kann nicht gelöscht werden."])
+                }
+
+                // 2. Artikelgruppen des Vertrags ermitteln.
+                let groups: [IdRow] = try await client
+                    .from("articlegroup")
+                    .select("id")
+                    .eq("fk_contract", value: String(id))
+                    .execute()
+                    .value
+                let groupIds = groups.map { String($0.id) }
+
+                // 3. Abhängige Datensätze der Artikelgruppen entfernen.
+                if !groupIds.isEmpty {
+                    _ = try await client.from("machineconfig").delete().in("fk_articlegroup", values: groupIds).execute()
+                    _ = try await client.from("article").delete().in("fk_articlegroup", values: groupIds).execute()
+                    _ = try await client.from("articlegroup").delete().eq("fk_contract", value: String(id)).execute()
+                }
+
+                // 4. Vertrag löschen.
+                _ = try await client.from("contract").delete().eq("id", value: String(id)).execute()
+                completion(.success(()))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
     
     // MARK: - Contract Copy
 
