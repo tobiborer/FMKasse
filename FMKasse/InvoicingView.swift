@@ -218,7 +218,8 @@ struct InvoicingView: View {
         }
         
         group.enter()
-        SupabaseManager.shared.fetchContracts { result in
+        // Faktura muss auch Verträge von Buchungen auf soft-gelöschten Verträgen auflösen.
+        SupabaseManager.shared.fetchAllContracts { result in
             DispatchQueue.main.async {
                 if case .success(let contracts) = result {
                     self.contracts = contracts
