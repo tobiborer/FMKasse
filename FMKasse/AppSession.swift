@@ -46,6 +46,8 @@ struct AppUser: Codable, Identifiable {
     let displayname: String?
     let role: UserRole
     let created_at: String?
+    /// Optional einer Kasse zugeordnet – wird beim Login automatisch als Gerät übernommen.
+    let fk_machine: Int64?
 }
 
 struct AppUserInsert: Encodable {
@@ -58,6 +60,17 @@ struct AppUserInsert: Encodable {
 struct AppUserRoleUpdate: Encodable {
     let role: String
     let displayname: String?
+    let fk_machine: Int64?
+
+    enum CodingKeys: String, CodingKey { case role, displayname, fk_machine }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(role, forKey: .role)
+        try container.encodeIfPresent(displayname, forKey: .displayname)
+        // fk_machine bewusst auch als null kodieren, damit "Keine Kasse" die Zuordnung löscht.
+        try container.encode(fk_machine, forKey: .fk_machine)
+    }
 }
 
 // MARK: - AppSession
@@ -90,6 +103,16 @@ class AppSession: ObservableObject {
         }
     }
 
+    /// Setzt die dem Benutzer zugeordnete Kasse als aktives Gerät.
+    /// Nur User mit Admin-Rechten können das Gerät in den Einstellungen selbst wählen;
+    /// für alle anderen wird die zugeordnete Kasse beim Login automatisch übernommen.
+    /// Hat der Benutzer keine Zuordnung, bleibt die bisherige Geräteauswahl unverändert.
+    private func applyAssignedMachine(_ user: AppUser) {
+        if let machineId = user.fk_machine {
+            DeviceRepository.shared.selectedMachineId = machineId
+        }
+    }
+
     private func loadOrCreateProfile(userId: String, email: String?) async {
         await withCheckedContinuation { continuation in
             SupabaseManager.shared.fetchUserProfile(userId: userId) { result in
@@ -98,6 +121,7 @@ class AppSession: ObservableObject {
                     case .success(let user):
                         if let user = user {
                             self.currentUser = user
+                            self.applyAssignedMachine(user)
                             continuation.resume()
                         } else {
                             // Erstes Login → Profil anlegen (USER-Rolle)
@@ -108,7 +132,8 @@ class AppSession: ObservableObject {
                                     if case .success = insertResult {
                                         self.currentUser = AppUser(
                                             id: userId, email: email,
-                                            displayname: nil, role: .user, created_at: nil
+                                            displayname: nil, role: .user, created_at: nil,
+                                            fk_machine: nil
                                         )
                                     } else if case .failure(let err) = insertResult {
                                         self.profileError = err.localizedDescription

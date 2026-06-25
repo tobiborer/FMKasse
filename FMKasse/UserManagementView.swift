@@ -159,6 +159,8 @@ struct EditUserView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var displayname: String
     @State private var selectedRole: UserRole
+    @State private var selectedMachineId: Int64?
+    @State private var machines: [Machine] = []
     @State private var isSaving = false
     @State private var errorMessage: String?
 
@@ -166,6 +168,7 @@ struct EditUserView: View {
         self.user = user
         _displayname = State(initialValue: user.displayname ?? "")
         _selectedRole = State(initialValue: user.role)
+        _selectedMachineId = State(initialValue: user.fk_machine)
     }
 
     var body: some View {
@@ -218,6 +221,18 @@ struct EditUserView: View {
                     }
                 }
 
+                Section(header: Text("Zugeordnete Kasse"), footer: Text("Die zugeordnete Kasse wird beim Login automatisch als Gerät übernommen. Benutzer ohne Admin-Rechte können kein Gerät selbst wählen.").font(Equans.Fonts.caption).foregroundColor(Equans.Colors.textSecondary)) {
+                    Picker("Kasse", selection: $selectedMachineId) {
+                        Text("Keine").tag(Int64?.none)
+                        ForEach(machines) { machine in
+                            Text(machine.machinename ?? "Kasse \(machine.id)")
+                                .tag(Int64?.some(machine.id))
+                        }
+                    }
+                    .font(Equans.Fonts.body)
+                    .foregroundColor(Equans.Colors.textPrimary)
+                }
+
                 if let errorMessage = errorMessage {
                     Section {
                         Text(errorMessage).foregroundColor(Equans.Colors.danger).font(Equans.Fonts.caption)
@@ -228,6 +243,7 @@ struct EditUserView: View {
             .background(Equans.Colors.background.ignoresSafeArea())
             .navigationTitle("Benutzer bearbeiten")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear(perform: loadMachines)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Abbrechen") { dismiss() }
@@ -238,6 +254,16 @@ struct EditUserView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(Equans.Colors.darkBlue)
                         .disabled(isSaving)
+                }
+            }
+        }
+    }
+
+    private func loadMachines() {
+        SupabaseManager.shared.fetchMachines { result in
+            DispatchQueue.main.async {
+                if case .success(let m) = result {
+                    machines = m.sorted { ($0.machinename ?? "") < ($1.machinename ?? "") }
                 }
             }
         }
@@ -257,7 +283,8 @@ struct EditUserView: View {
         SupabaseManager.shared.updateUserProfile(
             userId: user.id,
             role: selectedRole,
-            displayname: displayname.trimmingCharacters(in: .whitespaces).isEmpty ? nil : displayname.trimmingCharacters(in: .whitespaces)
+            displayname: displayname.trimmingCharacters(in: .whitespaces).isEmpty ? nil : displayname.trimmingCharacters(in: .whitespaces),
+            fkMachine: selectedMachineId
         ) { result in
             DispatchQueue.main.async {
                 isSaving = false
@@ -268,7 +295,8 @@ struct EditUserView: View {
                         AppSession.shared.currentUser = AppUser(
                             id: user.id, email: user.email,
                             displayname: displayname.nilIfEmpty,
-                            role: selectedRole, created_at: user.created_at
+                            role: selectedRole, created_at: user.created_at,
+                            fk_machine: selectedMachineId
                         )
                     }
                     dismiss()

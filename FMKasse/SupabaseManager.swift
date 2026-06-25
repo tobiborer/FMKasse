@@ -917,8 +917,8 @@ class SupabaseManager {
         }
     }
 
-    func updateUserProfile(userId: String, role: UserRole, displayname: String?, completion: @escaping (Result<Void, Error>) -> Void) {
-        let payload = AppUserRoleUpdate(role: role.rawValue, displayname: displayname)
+    func updateUserProfile(userId: String, role: UserRole, displayname: String?, fkMachine: Int64?, completion: @escaping (Result<Void, Error>) -> Void) {
+        let payload = AppUserRoleUpdate(role: role.rawValue, displayname: displayname, fk_machine: fkMachine)
         Task {
             do {
                 _ = try await client.from("userprofile").update(payload).eq("id", value: userId).execute()
